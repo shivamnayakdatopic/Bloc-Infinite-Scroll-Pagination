@@ -51,9 +51,9 @@ class PostsView extends StatelessWidget {
       return ListView.separated(
         controller: scrollController,
         itemBuilder: (context, index) {
-          if (index < posts.length)
+          if (index < posts.length) {
             return _post(posts[index], context);
-          else {
+          } else {
             Timer(Duration(milliseconds: 30), () {
               scrollController
                   .jumpTo(scrollController.position.maxScrollExtent);
@@ -63,7 +63,7 @@ class PostsView extends StatelessWidget {
           }
         },
         separatorBuilder: (context, index) {
-          return Divider(
+          return const  Divider(
             color: Colors.red,
           );
         },
@@ -73,9 +73,9 @@ class PostsView extends StatelessWidget {
   }
 
   Widget _loadingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Center(child: CircularProgressIndicator()),
+    return const Padding(
+      padding:  EdgeInsets.all(8.0),
+      child:  Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -88,12 +88,12 @@ class PostsView extends StatelessWidget {
         children: [
           Text(
             "${post.id}. ${post.title}",
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 18.0,
                 color: Colors.black,
                 fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10.0),
+          const SizedBox(height: 10.0),
           Text(post.body)
         ],
       ),
