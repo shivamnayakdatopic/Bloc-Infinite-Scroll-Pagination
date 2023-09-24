@@ -5,10 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/posts_cubit.dart';
 import '../data/models/post.dart';
 
-class PostsView extends StatelessWidget {
-  final scrollController = ScrollController();
+class PostsView extends StatefulWidget {
+  @override
+  _PostsViewState createState() => _PostsViewState();
+}
 
-// Anything changes happen in ListView() This function will called.
+class _PostsViewState extends State<PostsView> with TickerProviderStateMixin {
+  final scrollController = ScrollController();
+  late AnimationController _animationController;
+
+  // Anything changes happen in ListView() This function will be called.
   void setupScrollController(context) {
     scrollController.addListener(() {
       if (scrollController.position.atEdge) {
@@ -20,13 +26,27 @@ class PostsView extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     setupScrollController(context);
     BlocProvider.of<PostsCubit>(context).loadPosts();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1), // Adjust the duration as needed
+    );
+  }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Posts"),
+        title: const Text("Posts"),
       ),
       body: _postList(),
     );
@@ -48,34 +68,46 @@ class PostsView extends StatelessWidget {
         posts = state.posts;
       }
 
-      return ListView.separated(
+      return ListView.builder(
         controller: scrollController,
+        itemCount: posts.length + (isLoading ? 1 : 0),
         itemBuilder: (context, index) {
           if (index < posts.length) {
-            return _post(posts[index], context);
+            return _buildAnimatedListItem(posts[index], index);
           } else {
-            Timer(Duration(milliseconds: 30), () {
-              scrollController
-                  .jumpTo(scrollController.position.maxScrollExtent);
+            Timer(const Duration(milliseconds: 30), () {
+              scrollController.jumpTo(scrollController.position.maxScrollExtent);
             });
 
             return _loadingIndicator();
           }
         },
-        separatorBuilder: (context, index) {
-          return const  Divider(
-            color: Colors.red,
-          );
-        },
-        itemCount: posts.length + (isLoading ? 1 : 0),
       );
     });
   }
 
+  Widget _buildAnimatedListItem(Post post, int index) {
+    // Use _animationController to control the animation
+    _animationController.forward();
+
+    return SizeTransition(
+      sizeFactor: Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(0.5 * index / 10, 1.0, curve: Curves.linearToEaseOut),
+        ),
+      ),
+      child: _post(post, context),
+    );
+  }
+
   Widget _loadingIndicator() {
     return const Padding(
-      padding:  EdgeInsets.all(8.0),
-      child:  Center(child: CircularProgressIndicator()),
+      padding: EdgeInsets.all(8.0),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 
